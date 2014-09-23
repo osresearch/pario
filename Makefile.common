@@ -37,7 +37,7 @@ GENERIC_CFLAGS += \
 	-Wp,-MMD,$(dir $@).$(notdir $@).d \
 	-Wp,-MT,$@ \
 	-I. \
-	-I$(TOP)/src/ledscape \
+	-I$(TOP) \
 	-O2 \
 	-mtune=cortex-a8 \
 	-march=armv7-a \
@@ -53,7 +53,7 @@ LDFLAGS += \
 
 LDLIBS += \
 	-L$(LIBDIR) \
-	-lledscape \
+	-lpario \
 	-lpthread \
 	-lm \
 
@@ -71,8 +71,8 @@ $(LIBDIR)/%.a:
 	$(RM) $@
 	$(COMPILE.a)
 
-$(BINDIR)/%:
-	$(COMPILE.link)
+#$(BINDIR)/%:
+#	$(COMPILE.link)
 
 
 #####
@@ -107,7 +107,7 @@ $(LIBDIR)/%.bin: %.p $(PASM)
 # object files for that source.
 #
 $(foreach O,$(BIN-y),\
-	$(eval $(BINDIR)/$O: $(foreach s,$($O.srcs),$(OBJDIR)/$(basename $s).o) $(LIBDIR)/libledscape.a))
+	$(eval $(BINDIR)/$O: $(foreach s,$($O.srcs),$(OBJDIR)/$(basename $s).o) $(LIBDIR)/libpario.a))
 
 $(foreach O,$(LIB-y),\
 	$(eval $(LIBDIR)/$O: $(foreach s,$($(basename $O).srcs),$(OBJDIR)/$(basename $s).o) $(APP_LOADER_LIB)))

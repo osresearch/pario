@@ -5,9 +5,13 @@
 #
 TARGETS-y += $(LIBDIR)/pario.bin
 
-LIB-y += libpario.a
+BIN-y += test-pario
+test-pario.srcs += \
+	test-pario.c \
 
+LIB-y += libpario.a
 libpario.srcs += \
+	pario.c \
 	pru.c \
 	util.c \
 
