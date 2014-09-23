@@ -1,9 +1,10 @@
 // \file
- /* PRU based parallel output driver.
+/** PRU based parallel output driver.
  *
  * Generates up to 55 output signals from a memory mapped user buffer.
  * Optionally also drive a clock on one pin.
  *
+ */
 .origin 0
 .entrypoint START
 
@@ -41,10 +42,10 @@ START:
 #define gpio3_mask	r5
 #define clock_mask	r6
 #define delay_count	r7
-#define gpio0		r10
-#define gpio1		r11
-#define gpio2		r12
-#define gpio3		r13
+#define gpio0_base	r10
+#define gpio1_base	r11
+#define gpio2_base	r12
+#define gpio3_base	r13
 #define gpio0_data	r14
 #define gpio1_data	r15
 #define gpio2_data	r16
@@ -52,10 +53,10 @@ START:
 #define clr_out		r18
 #define set_out		r19 // must be clr_out+1
 
-	MOV gpio0, GPIO0_BASE
-	MOV gpio1, GPIO1_BASE
-	MOV gpio2, GPIO2_BASE
-	MOV gpio3, GPIO3_BASE
+	MOV gpio0_base, GPIO0
+	MOV gpio1_base, GPIO1
+	MOV gpio2_base, GPIO2
+	MOV gpio3_base, GPIO3
 
 READ_LOOP:
         // Load the command structure from the PRU DRAM, which is
@@ -80,8 +81,7 @@ READ_LOOP:
 
 
 OUTPUT_LOOP:
-		CMP count, 0
-		QBEQ READ_LOOP
+		QBEQ READ_LOOP, count, #0
 
 		// read four gpio outputs worth of data
 		LBBO gpio0_data, data_addr, 0, 4*4
@@ -90,24 +90,24 @@ OUTPUT_LOOP:
 		// gpio1 is done last for clock reasons
 		AND set_out, gpio0_data, gpio0_mask
 		XOR clr_out, set_out, gpio0_mask
-		SBBO out_clr, gpio0_base, GPIO_CLRDATAOUT, 8
+		SBBO clr_out, gpio0_base, GPIO_CLRDATAOUT, 8
 
 		AND set_out, gpio2_data, gpio2_mask
 		XOR clr_out, set_out, gpio2_mask
-		SBBO out_clr, gpio2_base, GPIO_CLRDATAOUT, 8
+		SBBO clr_out, gpio2_base, GPIO_CLRDATAOUT, 8
 
 		AND set_out, gpio3_data, gpio3_mask
 		XOR clr_out, set_out, gpio3_mask
-		SBBO out_clr, gpio3_base, GPIO_CLRDATAOUT, 8
+		SBBO clr_out, gpio3_base, GPIO_CLRDATAOUT, 8
 
 		AND set_out, gpio1_data, gpio1_mask
 		XOR clr_out, set_out, gpio1_mask
-		SBBO out_clr, gpio1_base, GPIO_CLRDATAOUT, 8
+		SBBO clr_out, gpio1_base, GPIO_CLRDATAOUT, 8
 
 		// toggle the clock, if it is set
 		XOR set_out, set_out, clock_mask
 		XOR clr_out, clr_out, clock_mask
-		SBBO out_clr, gpio1_base, GPIO_CLRDATAOUT, 8
+		SBBO clr_out, gpio1_base, GPIO_CLRDATAOUT, 8
 
 		// delay code goes here (not implemented yet)
 

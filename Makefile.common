@@ -4,10 +4,10 @@
 #
 #
 
-TOP ?= ./
-OBJDIR ?= $(TOP)/obj
-LIBDIR ?= $(TOP)/lib
-BINDIR ?= $(TOP)/bin
+TOP ?= .
+OBJDIR ?= $(TOP)
+LIBDIR ?= $(TOP)
+BINDIR ?= $(TOP)
 
 all: \
 	$(TARGETS-y) \

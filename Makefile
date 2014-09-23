@@ -5,14 +5,11 @@
 #
 TARGETS-y += $(LIBDIR)/pario.bin
 
-#LIB-y += libledscape.a
+LIB-y += libpario.a
 
-libledscape.srcs += \
-	ledscape.c \
+libpario.srcs += \
 	pru.c \
 	util.c \
-	config.c \
-	fixed-font.c \
 
 include ./Makefile.common
 
