@@ -15,6 +15,14 @@ Currently it seems to be limited to about 2.5 MHz on the outputs,
 or 400 ns, which is sufficient for most applications that we are
 considering.
 
+However, there appear to be occasional DDR stalls that can lead to
+multi-hundred ns delays in reading the data from the user buffer.
+For the WS2812 or DMX outputs, this can cause a zero to be
+interpreted as a one or other problems. So it might be necessary to
+use both PRU devices, with one of them buffering from DDR into the
+shared DRAM.  The DRAM is single ported, but the stalls are on the
+order of 5ns, rather than 100ns.
+
 
 WS2812
 ===
