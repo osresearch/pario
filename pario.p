@@ -34,6 +34,7 @@ START:
     ST32	r0, r1
 
 // register map
+// The first 8 must agree with the struct pario_cmd_t in pario.h
 #define data_addr	r0
 #define count		r1
 #define gpio0_mask	r2
@@ -52,6 +53,7 @@ START:
 #define gpio3_data	r17
 #define clr_out		r18
 #define set_out		r19 // must be clr_out+1
+#define delay_iter	r20
 
 	MOV gpio0_base, GPIO0
 	MOV gpio1_base, GPIO1
@@ -63,18 +65,8 @@ RESET:
 	SBCO data_addr, CONST_PRUDRAM, 0, 4
 
 READ_LOOP:
-        // Load the command structure from the PRU DRAM, which is
+        // Load the eight word command structure from the PRU DRAM, which is
 	// mapped into the user space.
-	// r0 == pointer to data buffer
-	// r1 == length in entries (4 32-bit words each)
-	// r2 == gpio0 mask
-	// r3 == gpio1 mask
-	// r4 == gpio2 mask
-	// r5 == gpio3 mask
-	// r6 == clock mask (always in gpio1)
-	// r7 == delay cycles
-
-	// load all eight command words
         LBCO      data_addr, CONST_PRUDRAM, 0, 8*4
 
         // Wait for a non-zero command
@@ -89,43 +81,45 @@ OUTPUT_LOOP:
 		// read four gpio outputs worth of data
 		LBBO gpio0_data, data_addr, 0, 4*4
 
-		// and write them to their outputs
+		// and write them to their outputs if there are any
+		// bits selected in each of the four GPIO banks.
+		// Since the SBBO takes 50ns or so, it is important
+		// to skip
 		QBEQ skip_gpio0, gpio0_mask, 0
 		AND set_out, gpio0_data, gpio0_mask
-		//XOR clr_out, set_out, gpio0_mask
-		//SBBO clr_out, gpio0_base, GPIO_CLRDATAOUT, 8
 		SBBO set_out, gpio0_base, GPIO_DATAOUT, 4
 skip_gpio0:
 
 		QBEQ skip_gpio2, gpio2_mask, 0
 		AND set_out, gpio2_data, gpio2_mask
-		//XOR clr_out, set_out, gpio2_mask
-		//SBBO clr_out, gpio2_base, GPIO_CLRDATAOUT, 8
 		SBBO set_out, gpio2_base, GPIO_DATAOUT, 4
 skip_gpio2:
 
 		QBEQ skip_gpio3, gpio3_mask, 0
 		AND set_out, gpio3_data, gpio3_mask
-		//XOR clr_out, set_out, gpio3_mask
-		//SBBO clr_out, gpio3_base, GPIO_CLRDATAOUT, 8
 		SBBO set_out, gpio3_base, GPIO_DATAOUT, 4
 
 skip_gpio3:
 		QBEQ skip_gpio1, gpio1_mask, 0
 		AND set_out, gpio1_data, gpio1_mask
-		OR set_out, set_out, clock_mask
-		//XOR clr_out, set_out, gpio1_mask
-		//SBBO clr_out, gpio1_base, GPIO_CLRDATAOUT, 8
+		OR set_out, set_out, clock_mask // force the clock high
 		SBBO set_out, gpio1_base, GPIO_DATAOUT, 4
 
-		// toggle the clock, if it is set
 skip_gpio1:
+		// and pull the clock down, if there is one
 		QBEQ skip_clock, clock_mask, 0
 		SBBO clock_mask, gpio1_base, GPIO_CLRDATAOUT, 4
 
 skip_clock:
 
-		// delay code goes here (not implemented yet)
+		// delay if the caller has requested it
+		// each count is 10 ns extra.
+		MOV delay_iter, delay_count
+		QBEQ delay_done, delay_iter, 0
+delay_loop:
+		SUB delay_iter, delay_iter, 1
+		QBNE delay_loop, delay_iter, 0
+delay_done:
 
 		// advance to the next output
 		ADD data_addr, data_addr, 4*4
