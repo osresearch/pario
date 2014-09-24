@@ -1,5 +1,5 @@
-*DANGER*
-
+Overview
+===
 This is a work in progress to try to adapt the LEDscape PRU code to work
 with arbitrary output protocols.  That way we don't need to change the
 firmware for ws2812, DMX, matrix or SPI outputs.
@@ -12,9 +12,9 @@ WS2812
 ===
 The WS2812 "NeoPixel" at 800 KHz are 1200ns per bit.
 
- +---+      +------+   +---
- |   |______|      |___|
- 300ns = 0   600ns = 1
+    +---+      +------+   +---
+    |   |______|      |___|
+    300ns = 0   600ns = 1
 
 The timing spec is loose enough that 400ns/800ns for the high bits
 should work.
