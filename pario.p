@@ -90,36 +90,44 @@ OUTPUT_LOOP:
 		LBBO gpio0_data, data_addr, 0, 4*4
 
 		// and write them to their outputs
-		// gpio1 is done last for clock reasons
+		QBEQ skip_gpio0, gpio0_mask, 0
 		AND set_out, gpio0_data, gpio0_mask
-		XOR clr_out, set_out, gpio0_mask
-		SBBO clr_out, gpio0_base, GPIO_CLRDATAOUT, 8
+		//XOR clr_out, set_out, gpio0_mask
+		//SBBO clr_out, gpio0_base, GPIO_CLRDATAOUT, 8
+		SBBO set_out, gpio0_base, GPIO_DATAOUT, 4
+skip_gpio0:
 
-		//LBBO gpio2_data, data_addr, 8, 4
-
+		QBEQ skip_gpio2, gpio2_mask, 0
 		AND set_out, gpio2_data, gpio2_mask
-		XOR clr_out, set_out, gpio2_mask
-		SBBO clr_out, gpio2_base, GPIO_CLRDATAOUT, 8
+		//XOR clr_out, set_out, gpio2_mask
+		//SBBO clr_out, gpio2_base, GPIO_CLRDATAOUT, 8
+		SBBO set_out, gpio2_base, GPIO_DATAOUT, 4
+skip_gpio2:
 
-		//LBBO gpio3_data, data_addr, 12, 4
-
+		QBEQ skip_gpio3, gpio3_mask, 0
 		AND set_out, gpio3_data, gpio3_mask
-		XOR clr_out, set_out, gpio3_mask
-		SBBO clr_out, gpio3_base, GPIO_CLRDATAOUT, 8
+		//XOR clr_out, set_out, gpio3_mask
+		//SBBO clr_out, gpio3_base, GPIO_CLRDATAOUT, 8
+		SBBO set_out, gpio3_base, GPIO_DATAOUT, 4
 
-		//LBBO gpio1_data, data_addr, 4, 4
-
+skip_gpio3:
+		QBEQ skip_gpio1, gpio1_mask, 0
 		AND set_out, gpio1_data, gpio1_mask
-		XOR clr_out, set_out, gpio1_mask
-		SBBO clr_out, gpio1_base, GPIO_CLRDATAOUT, 8
+		OR set_out, set_out, clock_mask
+		//XOR clr_out, set_out, gpio1_mask
+		//SBBO clr_out, gpio1_base, GPIO_CLRDATAOUT, 8
+		SBBO set_out, gpio1_base, GPIO_DATAOUT, 4
 
 		// toggle the clock, if it is set
-		XOR set_out, set_out, clock_mask
-		XOR clr_out, clr_out, clock_mask
-		SBBO clr_out, gpio1_base, GPIO_CLRDATAOUT, 8
+skip_gpio1:
+		QBEQ skip_clock, clock_mask, 0
+		SBBO clock_mask, gpio1_base, GPIO_CLRDATAOUT, 4
+
+skip_clock:
 
 		// delay code goes here (not implemented yet)
 
+		// advance to the next output
 		ADD data_addr, data_addr, 4*4
 		SUB count, count, 1
 		QBA OUTPUT_LOOP
