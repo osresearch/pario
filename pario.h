@@ -15,6 +15,7 @@ typedef struct
 	uint32_t gpio2_mask;
 	uint32_t gpio3_mask;
 	uint32_t clock_mask; // clock in gpio1
+	uint32_t delay_time; // in pru clocks
 } pario_cmd_t;
 
 typedef struct

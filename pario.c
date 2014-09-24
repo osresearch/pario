@@ -104,6 +104,7 @@ pario_init(
 		.gpio2_mask	= 0,
 		.gpio3_mask	= 0,
 		.clock_mask	= 0,
+		.delay_time	= 0,
 	};
 
 	pario_gpio_init(p->cmd);

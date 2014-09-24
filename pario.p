@@ -58,6 +58,10 @@ START:
 	MOV gpio2_base, GPIO2
 	MOV gpio3_base, GPIO3
 
+RESET:
+	MOV data_addr, 0
+	SBCO data_addr, CONST_PRUDRAM, 0, 4
+
 READ_LOOP:
         // Load the command structure from the PRU DRAM, which is
 	// mapped into the user space.
@@ -79,9 +83,8 @@ READ_LOOP:
         // Command of 0xFF is the signal to exit
         QBEQ EXIT, data_addr, #0xFF
 
-
 OUTPUT_LOOP:
-		QBEQ READ_LOOP, count, #0
+		QBEQ RESET, count, #0
 
 		// read four gpio outputs worth of data
 		LBBO gpio0_data, data_addr, 0, 4*4
@@ -92,13 +95,19 @@ OUTPUT_LOOP:
 		XOR clr_out, set_out, gpio0_mask
 		SBBO clr_out, gpio0_base, GPIO_CLRDATAOUT, 8
 
+		//LBBO gpio2_data, data_addr, 8, 4
+
 		AND set_out, gpio2_data, gpio2_mask
 		XOR clr_out, set_out, gpio2_mask
 		SBBO clr_out, gpio2_base, GPIO_CLRDATAOUT, 8
 
+		//LBBO gpio3_data, data_addr, 12, 4
+
 		AND set_out, gpio3_data, gpio3_mask
 		XOR clr_out, set_out, gpio3_mask
 		SBBO clr_out, gpio3_base, GPIO_CLRDATAOUT, 8
+
+		//LBBO gpio1_data, data_addr, 4, 4
 
 		AND set_out, gpio1_data, gpio1_mask
 		XOR clr_out, set_out, gpio1_mask
@@ -111,10 +120,8 @@ OUTPUT_LOOP:
 
 		// delay code goes here (not implemented yet)
 
-		// and go onto the next one
 		ADD data_addr, data_addr, 4*4
 		SUB count, count, 1
-
 		QBA OUTPUT_LOOP
 
 EXIT:
