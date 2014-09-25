@@ -53,3 +53,58 @@ or five scans per 30 Hz video.
 This allows the reformatting of the bitmap to be done once rather than
 repeated for each output.
 
+
+DMA Helper
+===
+<pre>
+uint32_t length[2];
+const size_t buflen = 8192;
+uint8_t buffer[2][buflen];
+uint8_t * source;
+size_t length;
+
+void copier()
+{
+	while (!source)
+		;
+	uint8_t * s = source;
+	size_t len = length;
+	*source = NULL;
+
+	int which = 0;
+	while (len > 0)
+	{
+		while (ready[which])
+			;
+		size_t block_len = len;
+		if (block_len > buflen)
+			block_len = buflen;
+		memcpy(buffer[which], s, buflen);
+		s += block_len;
+		len -= block_len;
+		ready[which] = block_len;
+
+		which = (which + 1) % 2;
+	}
+
+	while (ready[which])
+		;
+	ready[which] = -1;
+}
+
+void reader()
+{
+	int which = 0;
+	while (1)
+	{
+		while (ready[which] == 0)
+			;
+		size_t len = ready[which];
+		if (len == -1)
+			break;
+		send(buffer[which], len);
+		ready[which] = 0;
+		which = (which + 1) % 2;
+	}
+}
+</pre>
